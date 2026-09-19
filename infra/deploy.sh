@@ -29,9 +29,14 @@ run_on_vm() {
   echo "=== [$vm] ==="
   for s in "${scripts[@]}"; do
     echo "--- ejecutando $(basename "$s") en $vm ---"
+    local preamble=""
+    # install-sql.sh necesita MC_DB_PASSWORD en el entorno remoto.
+    if [[ "$(basename "$s")" == "install-sql.sh" ]]; then
+      preamble="export MC_DB_PASSWORD='${MC_DB_PASSWORD:?Exporta MC_DB_PASSWORD antes de desplegar el rol sql}'; "
+    fi
     gcloud compute ssh "$vm" \
       --project="$PROJECT" --zone="$ZONE" --tunnel-through-iap \
-      --command="$(cat "$s")"
+      --command="${preamble}$(cat "$s")"
   done
 }
 
